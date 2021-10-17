@@ -55,7 +55,7 @@ Sample XAI outputs available in `sample_data/` to try out the tools.
 
 # Tools
 
-**`plot-3D.py`**
+## `plot-3D.py`
 
 ![Example plot-3D.py plot](img/plot-3D.png)
 
@@ -70,7 +70,7 @@ Plots a single instance with an interactive 3D viewer.
         -i 0 \                              # Instance
         -c 0                                # Class
 
-**`plot-2D.py`**
+## `plot-2D.py`
 
 ![Example plot-2D.py plot](img/plot-2D.png)
 
@@ -78,7 +78,7 @@ For a single instance, plots a set of selected channels as separate 2D plots.
 
     
 
-**`local2global-naive.py`**
+## `local2global-naive.py`
 
 Combines and visualizes a set of XAI outputs, so long as all have the same (rows, columns, channels). 
 Naive because it assumes all share same spatial location/structure. 
