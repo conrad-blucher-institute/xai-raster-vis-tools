@@ -57,6 +57,8 @@ Sample XAI outputs available in `sample_data/` to try out the tools.
 
 **`plot-3D.py`**
 
+![Example plot-3D.py plot](img/plot-3D.png)
+
 Plots a single instance with an interactive 3D viewer. 
 
     # Example: .npz
