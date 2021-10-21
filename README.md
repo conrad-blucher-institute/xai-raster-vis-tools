@@ -53,7 +53,7 @@ Sample XAI outputs available in `sample_data/` to try out the tools.
     pip install pyvista matplotlib shap
 
 
-# Tools
+# Main tools
 
 ## `plot-3D.py`
 
@@ -76,11 +76,34 @@ Plots a single instance with an interactive 3D viewer.
 
 For a single instance, plots a set of selected channels as separate 2D plots. 
 
-    
+    # Example: .npz
+    COMING SOON!!
+
+    # Example: .pickle
+     python plot-2D.py \
+        -p sample_data/fog_misses.pickle \  # Path to pickled SHAP output
+        -i 0 \                              # Instance
+        -c 0 \                              # Class
+        -b 370,371,372,373 \                # Selected band indices (starts from 0!)
+        --band_names A,B,C,D \              # Descriptive names of each selected band
+        -o test.png                         # Outplot plot
 
 ## `local2global-naive.py`
 
 Combines and visualizes a set of XAI outputs, so long as all have the same (rows, columns, channels). 
 Naive because it assumes all share same spatial location/structure. 
 For example, each instance is a fog predictor but for a uniform spatial region.
+
+
+# Minor utilities
+
+## `shap_merge.py`
+
+Given a list of pickled SHAP outputs, combine into single pickled SHAP output. 
+
+
+## `shap_split.py`
+
+Given a single pickled SHAP output and a list of indices, save only those indices as new pickled SHAP output.
+
 
