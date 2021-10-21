@@ -110,6 +110,9 @@ def main():
     # Merge
     merged = merge(explanations)
 
+    if not quiet:
+        print("Merged shape: {}".format(merged.shape))
+
     # Write
     with open(outfile, 'wb') as f:
         pickle.dump(merged, f)

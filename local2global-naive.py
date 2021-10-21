@@ -22,8 +22,8 @@ def main():
                       help="Path to pickled SHAP values.",
                       default = None)
     parser.add_option("-i", "--instances",
-                      help="Comma-delimited list instances to combine",
-                      default = "0")
+                      help="Comma-delimited list instances to combine. By default, combine all.",
+                      default = None)
     parser.add_option("-c", "--class_index",
                       help="Index of class to visualize.",
                       default = 0, type = "int")
@@ -36,7 +36,14 @@ def main():
     if infile is None:
         print("Must specify input file (-p)\nExiting...")
         exit(-1)
-    instances = np.array(options.instances.split(",")).astype("int")
+
+    instances = options.instances
+    if instances is not None:
+        instances = np.array(instances.split(",")).astype("int")
+    else:
+        shap_values = pickle.load(open(infile, "rb"))
+        instances = range(shap_values.shape[0])
+
     classIdx = options.class_index
 
     all_shap_values = [None for i in instances]
