@@ -10,8 +10,10 @@ from shap.plots import colors
 
 def loadPickle(pickleFile, instanceIdx, classIdx):
     shap_values = pickle.load(open(pickleFile, "rb"))
-    return (shap_values[instanceIdx, :, :, :, classIdx].values, shap_values[instanceIdx, :, :, :, classIdx].data,
-            shap_values[instanceIdx, :, :, :, :].base_values, shap_values.output_names)
+    return (shap_values[instanceIdx, :, :, :, classIdx].values,
+            shap_values[instanceIdx, :, :, :, classIdx].data,
+            shap_values[instanceIdx, :, :, :, :].base_values,
+            shap_values.output_names)
 
 
 def main():
@@ -44,6 +46,8 @@ def main():
 
     # Load data from pickle
     shap_values, data_values, base_values, class_labels = loadPickle(infile, instanceIdx, classIdx)
+    if data_values is None:
+        data_values = np.zeros_like(shap_values)
 
     # Determine which bands to plot
     bands = options.bands
@@ -57,7 +61,6 @@ def main():
         shap_maxes_abs = np.abs(shap_maxes)
         sortIdx = np.argsort(shap_maxes_abs)[::-1]
         bands = sortIdx[:nTop]
-        print(bands)
     else:
         # Default to all bands
         n = shap_values.shape[-1]
@@ -67,13 +70,15 @@ def main():
             n = nMax
         bands = np.array(range(n))
 
-
-
     bandNames = options.band_names
     if bandNames is not None:
         bandNames = bandNames.split(",")
     else:
         bandNames = ["band: {}".format(b) for b in bands]
+
+    # If sorting, sort band names
+    if nTop:
+        bandNames = [bandNames[i] for i in sortIdx]
 
     fig, ax = plt.subplots(len(bands), 3, squeeze=False, figsize=(8, 4 * len(bands)))
 
