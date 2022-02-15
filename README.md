@@ -94,6 +94,34 @@ Combines and visualizes a set of XAI outputs, so long as all have the same (rows
 Naive because it assumes all share same spatial location/structure. 
 For example, each instance is a fog predictor but for a uniform spatial region.
 
+## `getTopBands.py` & `animateTopBands.bash`
+
+![Example getTopBands.py plot](sample_data/fog_misses_top25.png)
+
+These scripts are for channel-wise (band-wise) analysis.
+Each channel's ranking is based on the maximum XAI value of its cells. 
+
+- `getTopBands.py`: Sorts the channels by maximum XAI value. Produces an ordered CSV and plot. 
+- `animateTopBands.bash`: Used to visualize the effect of increasing `k` in `top-k` channels. 
+
+
+    # Example: 
+    python getTopBands.py \
+        --num_bands 25 \                               # Number of 'top bands' (k)
+        --pickled_shap sample_data/fog_misses.pickle \ # Path to pickled SHAP output
+        --class_name fog_misses \                      # Name of class (for plot)
+        --groups 108,204,312,372 \     # (optional) indices to draw dividers on plot
+        --output_file sample_data/fog_misses.csv \     # Path to save output csv
+        --image_file sample_data/fog_misses_top25.png  # Path to save output plot
+
+    # Example output CSV
+    head -n 6 sample_data/fog_misses.csv
+    fog_misses_shap_band,fog_misses_shap_desc,fog_misses_shap_abs_band,fog_misses_shap_abs_desc
+    329,band 329,375,band 375
+    383,band 383,329,band 329
+    378,band 378,383,band 383
+    372,band 372,377,band 377
+    329,band 329,375,band 375
 
 # Minor utilities
 
