@@ -98,14 +98,13 @@ For example, each instance is a fog predictor but for a uniform spatial region.
 
 ![Example getTopBands.py plot](sample_data/fog_misses_top25.png)
 
-These scripts are for channel-wise (band-wise) analysis.
-Each channel's ranking is based on the maximum XAI value of its cells. 
-
 - `getTopBands.py`: Sorts the channels by maximum XAI value. Produces an ordered CSV and plot. 
 - `animateTopBands.bash`: Used to visualize the effect of increasing `k` in `top-k` channels. 
 
+These scripts are for channel-wise (band-wise) analysis.
+Each channel's ranking is based on the maximum XAI value of its cells. 
 
-    # Example: 
+    # Example:
     python getTopBands.py \
         --num_bands 25 \                               # Number of 'top bands' (k)
         --pickled_shap sample_data/fog_misses.pickle \ # Path to pickled SHAP output
@@ -114,7 +113,7 @@ Each channel's ranking is based on the maximum XAI value of its cells.
         --output_file sample_data/fog_misses.csv \     # Path to save output csv
         --image_file sample_data/fog_misses_top25.png  # Path to save output plot
 
-    # Example output CSV
+    # Example output CSV:
     head -n 6 sample_data/fog_misses.csv
     fog_misses_shap_band,fog_misses_shap_desc,fog_misses_shap_abs_band,fog_misses_shap_abs_desc
     329,band 329,375,band 375
