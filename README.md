@@ -98,29 +98,38 @@ For example, each instance is a fog predictor but for a uniform spatial region.
 
 ![Example getTopBands.py plot](sample_data/fog_misses_top25.png)
 
-- `getTopBands.py`: Sorts the channels by maximum XAI value. Produces an ordered CSV and plot. 
-- `animateTopBands.bash`: Used to visualize the effect of increasing `k` in `top-k` channels. 
-
 These scripts are for channel-wise (band-wise) analysis.
-Each channel's ranking is based on the maximum XAI value of its cells. 
+To score the bands, their __maximum value__ of the XAI output in that band's cells are used. 
+
+The `getTopBands.py` script sorts the channels based on their occurance in the top `k` results.
+That is, if **band X** occurs 5 times in the **top 25** and **band Y** occurs 3 times,
+then **band X** is ranked higher than **band Y**. It produced the following outputs. 
+Both the results using the signed XAI values and their absolute value are reported. 
+
+- `csv`: a sorted list of all bands based on number of occurances in top `k`, both for signed and absolute values
+- `png`: a plot of how many times each band occured in the top `k`
+
+The `animateTopBands.bash` script is used to produce plots for `k = 1, ... `,
+that serve as the frames of an animation that shows the effect of increasing `k`. 
 
     # Example:
     python getTopBands.py \
-        --num_bands 25 \                               # Number of 'top bands' (k)
-        --pickled_shap sample_data/fog_misses.pickle \ # Path to pickled SHAP output
-        --class_name fog_misses \                      # Name of class (for plot)
-        --groups 108,204,312,372 \     # (optional) indices to draw dividers on plot
-        --output_file sample_data/fog_misses.csv \     # Path to save output csv
-        --image_file sample_data/fog_misses_top25.png  # Path to save output plot
+        --num_bands 25 \                                         # Number of 'top bands' (k)
+        --pickled_shap sample_data/fog_misses.pickle \           # Path to pickled SHAP output
+        --class_name fog_misses \                                # Name of class (for plot)
+        --groups 108,204,312,372 \                               # (optional) indices to draw dividers on plot
+        --band_descriptions sample_data/fognet_band_names.txt \  # (optional) Path to file with names of bands
+        --output_file sample_data/fog_misses_top25.csv \         # Path to save output csv
+        --image_file sample_data/fog_misses_top25.png            # Path to save output plot
 
     # Example output CSV:
-    head -n 6 sample_data/fog_misses.csv
+    head -n 6 sample_data/fog_misses_top25.csv
     fog_misses_shap_band,fog_misses_shap_desc,fog_misses_shap_abs_band,fog_misses_shap_abs_desc
-    329,band 329,375,band 375
-    383,band 383,329,band 329
-    378,band 378,383,band 383
-    372,band 372,377,band 377
-    329,band 329,375,band 375
+    329,G4_VVEL_950m_t1,375,G5_TMPDP_t3
+    383,G5_DPTSS_t3,329,G4_VVEL_950m_t1
+    378,G5_TMPSS_t2,383,G5_DPTSS_t3
+    372,G5_TMPDP_t0,377,G5_TMPSS_t1
+    329,G4_VVEL_950m_t1,375,G5_TMPDP_t3
 
 # Minor utilities
 
