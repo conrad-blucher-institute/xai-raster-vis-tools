@@ -105,7 +105,12 @@ def main():
         exit(-2)
 
     # Load from pickles
-    explanations = [pickle.load(open(pfile, "rb")) for pfile in pickles]
+    explanations = []
+    for pfile in pickles:
+        try:
+            explanations.append(pickle.load(open(pfile, "rb")))
+        except:
+            print("Could not load file {}, Skipping...".format(pfile))
 
     # Merge
     merged = merge(explanations)

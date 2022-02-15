@@ -8,6 +8,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import shap
 from shap.plots import colors
+import matplotlib.colors as mcolors
 
 def main():
     parser = OptionParser()
@@ -25,26 +26,16 @@ def main():
                       default=-1, type="int")
     parser.add_option("-e", "--outfile_explanation",
                       help="Path to save aggregate explanation.")
-    parser.add_option(      "--explanation_type",
-                      help="Type of explanation via numeric code: 0 -> sum, 1 -> normalized sum.",
-                      default=0, type="int")
     parser.add_option("-o", "--outfile_plot",
                       help="Path to save aggregate spatial-wise plot.")
 
     options, args = parser.parse_args()
 
-    explanation_types = ["sum", "normalized sum"]
-
     outfile_explanation = options.outfile_explanation
-    explanation_type = options.explanation_type
     if outfile_explanation is None:
         print("No output file for aggregated explanation specified (-e). Will not save.")
     else:
         print("Will save aggregate explanation to {}".format(outfile_explanation))
-        print(" Of type ({} -> {})".format(explanation_type, explanation_types[explanation_type]))
-        print(" Available type options (-t):")
-        for i in range(len(explanation_types)):
-            print("    {} -> {}".format(i, explanation_types[i]))
 
     outfile_plot = options.outfile_plot
     if outfile_plot is None:
@@ -76,6 +67,11 @@ def main():
     all_shap_values = shap_explanation.values[:,:,:,:,0]
     all_data_values = shap_explanation.data
 
+    # Get mean of each channel (over all instances,
+    # useful for plotting rough idea of underlying data)
+    adv = np.array(all_data_values)
+    madv = np.mean(adv, axis=0)
+
     posTitle = "Toward class"
     negTitle = "Away from"
     bothTitle = "Combined"
@@ -84,13 +80,6 @@ def main():
     def splitSum(values, normalize=False):
         instances = values.shape[0]
         values_ = np.copy(values)
-
-        if normalize:
-            # Normalize each instance (w.r.t. self)
-            for i in range(instances):
-                x_min = values_[i].min(axis=(0,1,2), keepdims=True)
-                x_max = values_[i].max(axis=(0,1,2), keepdims=True)
-                values_[i] = (values_[i] - x_min) / (x_max - x_min)
 
         # Sum all instances (within each channel)
         aggChannel = np.sum(values_, axis=0)
@@ -107,16 +96,6 @@ def main():
         # Negative values
         neg = np.copy(values)
         neg[neg > 0] = 0 # Set positives to 0
-        neg = np.abs(neg) # Remove neg sign
-
-        if normalize:
-            for i in range(instances):
-                x_min = pos[i].min(axis=(0,1,2), keepdims=True)
-                x_max = pos[i].max(axis=(0,1,2), keepdims=True)
-                pos[i] = (pos[i] - x_min) / (x_max - x_min)
-                x_min = neg[i].min(axis=(0,1,2), keepdims=True)
-                x_max = neg[i].max(axis=(0,1,2), keepdims=True)
-                neg[i] = (neg[i] - x_min) / (x_max - x_min)
 
         # Sum all positives
         aggChannel_pos = np.sum(pos, axis=0)
@@ -130,72 +109,52 @@ def main():
         # Sum all channels
         aggSpatial_neg = np.sum(aggChannel_neg, axis=-1)
         # Calc max
-        negMax = np.max(aggSpatial_neg)
+        negMax = np.min(aggSpatial_neg)
 
         return aggChannel,     aggSpatial, aggMax, aggMin, \
                aggChannel_pos, aggSpatial_pos, posMax, \
                aggChannel_neg, aggSpatial_neg, negMax
 
 
-    fig, axs = plt.subplots(2, 4)
+    fig, axs = plt.subplots(1, 4)
+    agg_explanations = [None]
 
-    agg_explanations = [None, None]
-
-    # Version 1: simple sum
     aggChannel, aggSpatial, aggMax, aggMin, \
         aggChannel_pos, aggSpatial_pos, posMax, \
         aggChannel_neg, aggSpatial_neg, negMax = splitSum(all_shap_values)
-    #agg_explanations[0] = np.copy(aggChannel)
-    agg_explanations[0] = aggChannel_pos + (-1)* aggChannel_neg
-    # Plot it
-    vmax = max(posMax, negMax)
-    row = 0
-    axs[row][0].set_title("Simple sum")
-    vmax_ = np.max(np.abs(aggSpatial))
-    axs[row][1].imshow(aggSpatial, cmap=colors.red_transparent_blue)
-    axs[row][2].imshow(aggSpatial_pos, cmap=colors.red_transparent_blue, vmin=-vmax, vmax=vmax)
-    axs[row][3].imshow(-1*aggSpatial_neg, cmap=colors.red_transparent_blue, vmin=-vmax, vmax=vmax)
+    agg_explanations[0] = aggChannel_pos + aggChannel_neg
 
-    # Version 2: normalized sum
-    aggChannel, aggSpatial, aggMax, aggMin, \
-        aggChannel_pos, aggSpatial_pos, posMax, \
-        aggChannel_neg, aggSpatial_neg, negMax = splitSum(all_shap_values, normalize=True)
-    #agg_explanations[1] = np.copy(aggChannel)
-    agg_explanations[1] = aggChannel_pos + (-1)* aggChannel_neg
     # Plot it
-    vmax = max(posMax, negMax)
-    row = 1
-    vmax_ = np.max(np.abs(aggSpatial))
-    axs[row][0].set_title("Norm sum")
-    axs[row][1].imshow(aggSpatial, cmap=colors.red_transparent_blue)
-    axs[row][2].imshow(aggSpatial_pos, cmap=colors.red_transparent_blue, vmin=-vmax, vmax=vmax)
-    axs[row][3].imshow(-1*aggSpatial_neg, cmap=colors.red_transparent_blue, vmin=-vmax, vmax=vmax)
+    bound=np.max(np.array([posMax, -negMax]))
+    axs[1].imshow(aggSpatial, cmap="seismic",  vmin=-bound, vmax=bound)
+    axs[2].imshow(aggSpatial_pos, cmap="seismic", vmin=-bound, vmax=bound)
+    axs[3].imshow(aggSpatial_neg, cmap="seismic", vmin=-bound, vmax=bound)
 
     # Add background image
     if background_idx >= 0:
-        for r in range(len(axs)):
-            axs[r][0].imshow(all_data_values[0][:,:,background_idx], cmap = "Greys", alpha=0.25)
+        axs[0].imshow(all_data_values[0][:,:,background_idx], cmap = "Greys", alpha=0.25)
 
     # Other plot details
-    for r in range(len(axs)):
-        # Titles
-        axs[r][1].set_title("SHAP")
-        axs[r][2].set_title("Pos SHAP")
-        axs[r][3].set_title("Neg SHAP")
+    # Titles
+    axs[1].set_title("SHAP")
+    axs[2].set_title("Pos SHAP")
+    axs[3].set_title("Neg SHAP")
 
-        for c in range(len(axs[0])):
-            # Spatial data -> invert y axis
-            axs[r][c].invert_yaxis()
-            # Remove ticks
-            axs[r][c].axis('off')
-    axs[-1][0].text(0, -5, "(Note: Y-axis inverted)")
+    for c in range(len(axs)):
+        # Spatial data -> invert y axis
+        axs[c].invert_yaxis()
+        # Remove ticks
+        axs[c].axis('off')
+    axs[0].text(0, -5, "(Note: Y-axis inverted)")
 
     # Write outputs
     # Save aggregate as SHAP explanation
-    output_exp = agg_explanations[explanation_type]
+    output_exp = agg_explanations[0]
     output_exp = np.expand_dims(output_exp, axis = 0)
     output_exp = np.expand_dims(output_exp, axis = -1)
-    exp = shap.Explanation(output_exp)
+    madv_exp = np.expand_dims(madv, axis = 0)
+    print(madv_exp.shape)
+    exp = shap.Explanation(output_exp, data = madv_exp)
     if outfile_explanation is not None:
         with open(outfile_explanation, 'wb') as f:
             pickle.dump(exp, f)
