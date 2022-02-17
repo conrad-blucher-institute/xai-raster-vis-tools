@@ -94,25 +94,22 @@ Combines and visualizes a set of XAI outputs, so long as all have the same (rows
 Naive because it assumes all share same spatial location/structure. 
 For example, each instance is a fog predictor but for a uniform spatial region.
 
-## `getTopBands.py` & `animateTopBands.bash`
+## `getTopBands.py`
 
 ![Example getTopBands.py plot](sample_data/fog_misses_top25.png)
 
-These scripts are for channel-wise (band-wise) analysis.
-To score the bands, their __maximum value__ of the XAI output in that band's cells are used. 
 
 The `getTopBands.py` script sorts the channels based on their occurance in the top `k` results.
 That is, if **band X** occurs 5 times in the **top 25** and **band Y** occurs 3 times,
 then **band X** is ranked higher than **band Y**. It produced the following outputs. 
 Both the results using the signed XAI values and their absolute value are reported. 
+To score the bands, their __maximum value__ of the XAI output in that band's cells are used. 
 
 - `csv`: a sorted list of all bands based on number of occurances in top `k`, both for signed and absolute values
 - `png`: a plot of how many times each band occured in the top `k`
 
-The `animateTopBands.bash` script is used to produce plots for `k = 1, ... `,
-that serve as the frames of an animation that shows the effect of increasing `k`. 
+**Example**
 
-    # Example:
     python getTopBands.py \
         --num_bands 25 \                                         # Number of 'top bands' (k)
         --pickled_shap sample_data/fog_misses.pickle \           # Path to pickled SHAP output
