@@ -4,12 +4,13 @@ import numpy as np
 import pandas as pd
 import pickle
 from optparse import OptionParser
+from matplotlib import colors
 import matplotlib.pyplot as plt
 import copy
 import shap
 
-colorRed = (255./255, 13./255, 87./255)
-colorBlue = (30./255, 136./255, 229./255)
+colorRed = (250./255, 150./255, 150./255)
+colorBlue = (150./255, 150./255, 250./255)
 
 def main():
     parser = OptionParser()
@@ -228,7 +229,7 @@ def main():
         maxCount = max(np.max(shapAbsTopCounts), np.max(shapAbsBottomCounts))
 
         # Plot count of band occurances in top N bands:   SHAP magnitude for top and bottom occurances
-        mainColor = "tab:green"
+        mainColor = (105.0/255.0, 225.0/255.0, 105.0/255.0)
         ax0.bar(x=range(bands), height=shapAbsTopCounts, width=4, color=mainColor)
         ax0.set_xlim(-1, bands+1)
         ax0.set_ylim(0, maxCount)
@@ -236,7 +237,7 @@ def main():
         ax0.set_xlabel("Band")
         ax0.set_ylabel("Occurances in top {}".format(numBands))
         for g in groups:
-            ax0.axvline(g, color="tab:purple", linestyle="dotted")
+            ax0.axvline(g, color="black", linestyle="dotted", lw=3)
 
         ax1A.bar(x=range(bands), height=shapAbsTopCounts, width=4, color=mainColor)
         ax1A.set_xlim(-1, bands+1)
@@ -246,7 +247,7 @@ def main():
         ax1A.set_ylabel("Top bands")
         ax1A.set_xticks([])
         for g in groups:
-            ax1A.axvline(g, color="tab:purple", linestyle="dotted")
+            ax1A.axvline(g, color="black", linestyle="dotted", lw=3)
 
         ax1B.bar(x=range(bands), height=shapAbsBottomCounts, width=4, color="tab:gray")
         ax1B.set_xlim(-1, bands+1)
@@ -254,7 +255,7 @@ def main():
         ax1B.set_xlabel("Band")
         ax1B.set_ylabel("Bottom bands")
         for g in groups:
-            ax1B.axvline(g, color="tab:purple", linestyle="dotted")
+            ax1B.axvline(g, color="black", linestyle="dotted", lw=3)
         ax1B.invert_yaxis()
 
         # Plot count of band occurances in top N bands:   POS and NEG SHAP values
@@ -266,14 +267,14 @@ def main():
         ax2A.set_ylabel("Top positive")
         ax2A.set_xticks([])
         for g in groups:
-            ax2A.axvline(g, color="tab:purple", linestyle="dotted")
+            ax2A.axvline(g, color="black", linestyle="dotted", lw=3)
         ax2B.bar(x=range(bands), height=negCounts, width=4, color=colorBlue)
         ax2B.set_xlim(-1, bands+1)
         ax2B.set_ylim(0, maxCount)
         ax2B.set_xlabel("Band")
         ax2B.set_ylabel("Top negative")
         for g in groups:
-            ax2B.axvline(g, color="tab:purple", linestyle="dotted")
+            ax2B.axvline(g, color="black", linestyle="dotted", lw=3)
         ax2B.invert_yaxis()
 
 
@@ -339,14 +340,13 @@ def main():
             ax0.set_ylabel("{}: occurances in top {}".format(className, numBands))
 
             # Plot count of band occurances in top N bands:   SHAP magnitude for top and bottom occurances
-            mainColor = "tab:purple"
             ax02.bar(x=range(bands), height=shapAbsTopCounts, width=4, color=mainColor)
             ax02.set_xlim(-1, bands+1)
             ax02.set_ylim(0, maxCount)
             ax02.set_xlabel("Band")
             ax02.set_ylabel("{}: occurances in top {}".format(className2, numBands))
             for g in groups:
-                ax02.axvline(g, color="tab:purple", linestyle="dotted")
+                ax02.axvline(g, color="black", linestyle="dotted", lw=3)
             ax02.invert_yaxis()
 
             ax1A2.bar(x=range(bands), height=shapAbsTopCounts, width=4, color=mainColor)
@@ -357,7 +357,7 @@ def main():
             ax1A2.set_ylabel("Top bands")
             ax1A2.set_xticks([])
             for g in groups:
-                ax1A2.axvline(g, color="tab:purple", linestyle="dotted")
+                ax1A2.axvline(g, color="black", linestyle="dotted", lw=3)
 
             ax1B2.bar(x=range(bands), height=shapAbsBottomCounts, width=4, color="tab:gray")
             ax1B2.set_xlim(-1, bands+1)
@@ -365,7 +365,7 @@ def main():
             ax1B2.set_xlabel("Band")
             ax1B2.set_ylabel("Bottom bands")
             for g in groups:
-                ax1B2.axvline(g, color="tab:purple", linestyle="dotted")
+                ax1B2.axvline(g, color="black", linestyle="dotted", lw=3)
             ax1B2.invert_yaxis()
 
             # Plot count of band occurances in top N bands:   POS and NEG SHAP values
@@ -377,14 +377,14 @@ def main():
             ax2A2.set_ylabel("Top positive")
             ax2A2.set_xticks([])
             for g in groups:
-                ax2A2.axvline(g, color="tab:purple", linestyle="dotted")
+                ax2A2.axvline(g, color="black", linestyle="dotted", lw=3)
             ax2B2.bar(x=range(bands), height=negCounts, width=4, color=colorBlue)
             ax2B2.set_xlim(-1, bands+1)
             ax2B2.set_ylim(0, maxCount)
             ax2B2.set_xlabel("Band")
             ax2B2.set_ylabel("Top negative")
             for g in groups:
-                ax2B2.axvline(g, color="tab:purple", linestyle="dotted")
+                ax2B2.axvline(g, color="black", linestyle="dotted", lw=3)
             ax2B2.invert_yaxis()
 
 
