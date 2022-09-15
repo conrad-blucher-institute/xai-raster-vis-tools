@@ -36,7 +36,7 @@ def main():
     parser.add_option(     "--groups",
                       help="Comma-delimited list of bands that separate groups (for plots).")
     parser.add_option(     "--band_descriptions",
-                      help="File where the ith line is a text desciption of the ith band. Starts with band 0.")
+                      help="CSV with a column named 'band' that has the name of each band.")
     parser.add_option(     "--no_plot",
                       help="Only calculate top bands, no plotting",
                       default=False, action="store_true")
@@ -65,9 +65,11 @@ def main():
     if groups is not None:
         groups = [int(g) for g in groups.split(",")]
     bandDescsFile = options.band_descriptions
+
     if bandDescsFile is not None:
-        with open(bandDescsFile) as f:
-            bandDescs = f.read().splitlines()
+        bandDescs = pd.read_csv(bandDescsFile)
+        bandDescs = bandDescs["band"].values
+
     noPlot = options.no_plot
 
     print("")

@@ -1,6 +1,7 @@
 # Visualize 3D SHAP values as a set of 2D plots
 
 import numpy as np
+import pandas as pd
 import pickle
 from optparse import OptionParser
 import matplotlib
@@ -34,7 +35,7 @@ def main():
                       help="Number of top bands to plot. Ignores '-b' option.",
                       type = "int")
     parser.add_option(      "--band_names",
-                      help="Comma-delimited list of band names for plot titles")
+                      help="CSV with a column named 'band' that has the name of each band. May have other optional columns.")
     parser.add_option(      "--marker",
                       help="Comma-delimited row,col,size for a plot marker")
     parser.add_option("-o", "--output_file",
@@ -42,6 +43,12 @@ def main():
     parser.add_option(      "--output_single",
                       help="Instead of a single large plot, each channel saved as own file. Will use 'BIDX' in filename with channel index.",
                       action = "store_true", default=False)
+    parser.add_option(      "--reverse_z_standard",
+                      help="Requires the csv from '--band_names', and with columns 'mean', 'std'. For bands with non-null mean & std, will reverse Z standardization back to original values.",
+                      action = "store_true", default=False)
+    parser.add_option(      "--clabel_fmt",
+                      help="Format string for formatting the contour labels. See matplotlib's 'clabel' documentation.",
+                      default="%1.2f")
 
     options, args = parser.parse_args()
 
@@ -51,6 +58,10 @@ def main():
     classIdx = options.class_index
 
     output_single = options.output_single
+
+    reverse_z_std = options.reverse_z_standard
+
+    clabel_fmt = options.clabel_fmt
 
     marker = options.marker
     if marker is not None:
@@ -64,6 +75,7 @@ def main():
     # Determine which bands to plot
     bands = options.bands
     nTop = options.top_bands
+
     if bands is not None:
         # List provided by user
         bands = np.array(bands.split(",")).astype("int")
@@ -82,9 +94,11 @@ def main():
             n = nMax
         bands = np.array(range(n))
 
+    dfBands = None
     bandNames = options.band_names
     if bandNames is not None:
-        bandNames = bandNames.split(",")
+        dfBands = pd.read_csv(bandNames)
+        bandNames = dfBands["band"].values
     else:
         bandNames = ["band: {}".format(b) for b in bands]
 
@@ -102,11 +116,19 @@ def main():
     min_level = -5
     step_level = 0.5
 
-
     if output_single:
         for i, band in enumerate(bands):
             shap_b = shap_values[:,:,band]
             data_b = data_values[:,:,band]
+
+            # If `reverse_z_std` option,
+            # then use the provided mean and std to convert standardized
+            # values to original data values
+            if dfBands is not None and reverse_z_std:
+                mean = dfBands["mean"].iloc[band]
+                std = dfBands["std"].iloc[band]
+                if np.isnan(mean) == False:
+                    data_b = std * data_b + mean
 
             local_abs_vals = np.abs(shap_b[:,:])
             local_max_val = np.nanpercentile(local_abs_vals, 99.9)
@@ -116,8 +138,8 @@ def main():
             ax.imshow(shap_b, cmap=colors.red_transparent_blue, vmin=-local_max_val, vmax=local_max_val)
             data_b_ = gaussian_filter(data_b, sigma=0.6)
 
-            contours = ax.contour(data_b_, colors="#383630", alpha=0.75, linewidths=0.5, levels = np.arange(min_level, max_level + step_level, step_level))
-            clabels = ax.clabel(contours, inline=True, fontsize=20, inline_spacing=10, levels = contours.levels[::2], fmt='%1.f', colors="black")
+            contours = ax.contour(data_b_, colors="#383630", alpha=0.75, linewidths=0.5) #, levels = np.arange(min_level, max_level + step_level, step_level))
+            clabels = ax.clabel(contours, inline=True, fontsize=20, inline_spacing=10, levels = contours.levels[::2], fmt=clabel_fmt, colors="black")
             ax.invert_yaxis()
             ax.set_xticks([])
             ax.set_xticks([], minor=True)
@@ -144,6 +166,15 @@ def main():
             shap_b = shap_values[:,:,band]
             data_b = data_values[:,:,band]
 
+            # If `reverse_z_std` option,
+            # then use the provided mean and std to convert standardized
+            # values to original data values
+            if dfBands is not None and reverse_z_std:
+                mean = dfBands["mean"].iloc[band]
+                std = dfBands["std"].iloc[band]
+                if np.isnan(mean) == False:
+                    data_b = std * data_b + mean
+
             local_abs_vals = np.abs(shap_b[:,:])
             local_max_val = np.nanpercentile(local_abs_vals, 99.9)
 
@@ -151,16 +182,13 @@ def main():
             ax[i][0].imshow(data_b, cmap="gray")
             ax[i][0].invert_yaxis()
             ax[i][1].set_title("SHAP: scaled by all")
-            #ax[i][1].imshow(data_b, cmap="gray", alpha=0.25)
             ax[i][1].imshow(shap_b, cmap="seismic", vmin=-max_val, vmax=max_val)
             ax[i][1].invert_yaxis()
             ax[i][2].set_title("")
             ax[i][2].imshow(shap_b, cmap=colors.red_transparent_blue, vmin=-max_val, vmax=max_val)
             contours = ax[i][2].contour(data_b, colors='black', )
-            #ax[i][2].clabel(contours, inline=True, fontsize=8)
             ax[i][2].invert_yaxis()
             ax[i][3].set_title("SHAP: scaled by self")
-            #ax[i][3].imshow(data_b, cmap="gray", alpha=0.25)
             ax[i][3].imshow(shap_b, cmap=colors.red_transparent_blue, vmin=-local_max_val, vmax=local_max_val)
             ax[i][3].invert_yaxis()
             ax[i][4].set_title("")
@@ -168,8 +196,8 @@ def main():
 
             data_b_ = gaussian_filter(data_b, sigma=0.6)
 
-            contours = ax[i][4].contour(data_b_, colors="#383630", alpha=0.75, linewidths=0.5, levels = np.arange(min_level, max_level + step_level, step_level))
-            clabels = ax[i][4].clabel(contours, inline=True, fontsize=8, inline_spacing=10, levels = contours.levels[::2], fmt='%1.f', colors="black")
+            contours = ax[i][4].contour(data_b_, colors="#383630", alpha=0.75, linewidths=0.5) #, levels = np.arange(min_level, max_level + step_level, step_level))
+            clabels = ax[i][4].clabel(contours, inline=True, fontsize=8, inline_spacing=10, levels = contours.levels[::2], colors="black")
             ax[i][4].invert_yaxis()
 
             for j in range(5):
