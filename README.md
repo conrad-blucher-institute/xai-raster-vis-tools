@@ -45,6 +45,10 @@ Sample XAI outputs available in `sample_data/` to try out the tools.
 
 # Setup virtual environment & libraries
 
+    git clone https://github.com/conrad-blucher-institute/xai-raster-vis-tools.git
+    cd xai-raster-vis-tools
+    git lfs pull     # Must set up git lfs (https://git-lfs.github.com/)
+
     python3 -m venv venv
     source venv/bin/activate
 
