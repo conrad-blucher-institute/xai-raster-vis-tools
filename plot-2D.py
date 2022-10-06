@@ -135,11 +135,15 @@ def main():
 
             fig, ax = plt.subplots(figsize=(3,3))
             ax.set_title(bandNames[i])
-            ax.imshow(shap_b, cmap=colors.red_transparent_blue, vmin=-local_max_val, vmax=local_max_val)
-            data_b_ = gaussian_filter(data_b, sigma=0.6)
+            ax.imshow(shap_b, cmap=colors.red_transparent_blue, vmin=-local_max_val, vmax=local_max_val, alpha=0.5)
+            data_b_ = gaussian_filter(data_b, sigma=0.9)
 
-            contours = ax.contour(data_b_, colors="#383630", alpha=0.75, linewidths=0.5) #, levels = np.arange(min_level, max_level + step_level, step_level))
-            clabels = ax.clabel(contours, inline=True, fontsize=20, inline_spacing=10, levels = contours.levels[::2], fmt=clabel_fmt, colors="black")
+            contours = ax.contour(data_b_, colors="#383630", alpha=1, linewidths=1)
+            clabels = ax.clabel(contours, zorder=200, inline=True, fontsize=16, inline_spacing=6,
+                                levels = contours.levels[::2], fmt=clabel_fmt, colors="#030a75")
+            for txt in clabels:
+                txt.set_weight('bold')
+
             ax.invert_yaxis()
             ax.set_xticks([])
             ax.set_xticks([], minor=True)
@@ -149,7 +153,7 @@ def main():
             if marker is not None:
                 mcolor="#b0e88b"
                 for j in range(5):
-                    ax.scatter(marker[1], marker[0], marker="X", s=marker[2], c=mcolor, alpha=0.8, edgecolors="#40612b", zorder=100)
+                    ax.scatter(marker[1], marker[0], marker=".", s=marker[2], c=mcolor, alpha=0.5, edgecolors="#40612b", zorder=100)
 
             if outfile is not None:
                 outfile_ = outfile.replace("BIDX", str(i))
@@ -196,8 +200,7 @@ def main():
 
             data_b_ = gaussian_filter(data_b, sigma=0.6)
 
-            contours = ax[i][4].contour(data_b_, colors="#383630", alpha=0.75, linewidths=0.5) #, levels = np.arange(min_level, max_level + step_level, step_level))
-            clabels = ax[i][4].clabel(contours, inline=True, fontsize=8, inline_spacing=10, levels = contours.levels[::2], colors="black")
+
             ax[i][4].invert_yaxis()
 
             for j in range(5):
@@ -210,7 +213,13 @@ def main():
             if marker is not None:
                 mcolor="#b0e88b"
                 for j in range(5):
-                    ax[i][j].scatter(marker[1], marker[0], marker="X", s=marker[2], c=mcolor, alpha=0.8, edgecolors="#40612b", zorder=100)
+                    ax[i][j].scatter(marker[1], marker[0], marker="X", s=marker[2], c=mcolor, alpha=0.8, edgecolors="#40612b", zorder=10)
+
+            contours = ax.contour(data_b_, colors="#383630", alpha=1, linewidths=1)
+            clabels = ax.clabel(contours, zorder=200, inline=True, fontsize=16, inline_spacing=6,
+                                levels = contours.levels[::2], fmt=clabel_fmt, colors="#030a75")
+            for txt in clabels:
+                txt.set_weight('bold')
 
         if outfile is not None:
             plt.savefig(outfile, bbox_inches='tight')
