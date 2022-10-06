@@ -15,7 +15,10 @@ import shap
 
 def loadPickle(pickleFile, instanceIdx, classIdx):
     shap_values = pickle.load(open(pickleFile, "rb"))
-    return (shap_values[instanceIdx, :, :, :, classIdx].values, shap_values[instanceIdx, :, :, :, :].base_values, shap_values.output_names)
+
+    return (shap_values.values[instanceIdx, :, :, :, classIdx], 
+            shap_values.base_values, 
+            shap_values.output_names)
 
 def buildGrid(values, origin=(0, 0, 0), spacing=(10, 10, 10)):
     # Spatial reference
